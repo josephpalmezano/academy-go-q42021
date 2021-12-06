@@ -7,6 +7,7 @@ import (
 	"log"
 	"main/model"
 	"os"
+	"strconv"
 )
 
 type CarRepo interface {
@@ -26,9 +27,17 @@ func listData(data [][]string) []model.Car {
 			var rec model.Car
 			for j, field := range line {
 				if j == 0 {
-					rec.Id = field
+					var err error
+					rec.Id, err = strconv.Atoi(field)
+					if err != nil {
+						continue
+					}
 				} else if j == 1 {
-					rec.Year = field
+					var err error
+					rec.Year, err = strconv.Atoi(field)
+					if err != nil {
+						continue
+					}
 				} else if j == 2 {
 					rec.Brand = field
 				} else if j == 3 {
