@@ -11,6 +11,7 @@ import (
 )
 
 type CarRepo interface {
+	Save(car *model.Car) (*model.Car, error)
 	GetAll() ([]model.Car, error)
 }
 type repo struct{}
@@ -76,4 +77,24 @@ func (*repo) GetAll() ([]model.Car, error) {
 	fmt.Println(string(jsonData))
 
 	return cars, err
+}
+
+func (*repo) Save(car *model.Car) (*model.Car, error) {
+	f, err := os.OpenFile("data/cars.csv", os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+	var row [][]string
+	row = append(row, []string{strconv.Itoa(car.Id), strconv.Itoa(car.Year), car.Brand, car.Model, car.Color})
+
+	w := csv.NewWriter(f)
+	w.WriteAll(row)
+
+	if err := w.Error(); err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("Appending succed")
+
+	return car, nil
 }
