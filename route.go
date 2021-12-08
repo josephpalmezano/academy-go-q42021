@@ -14,7 +14,8 @@ var (
 
 func GetCars(resp http.ResponseWriter, req *http.Request) {
 	resp.Header().Set("Content-Type", "application/json")
-	cars, err := repo.GetAll()
+	reqType := req.URL.Query().Get("type")
+	cars, err := repo.GetAll(reqType)
 	if err != nil {
 		resp.WriteHeader(http.StatusInternalServerError)
 		resp.Write([]byte(`{"error": "Error getting the cars"}`))

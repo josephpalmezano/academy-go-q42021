@@ -15,7 +15,7 @@ var wg = sync.WaitGroup{}
 
 type CarRepo interface {
 	Save(car *model.Car) (*model.Car, error)
-	GetAll() ([]model.Car, error)
+	GetAll(reqType string) ([]model.Car, error)
 }
 type repo struct{}
 
@@ -23,25 +23,25 @@ func NewCarRepo() CarRepo {
 	return &repo{}
 }
 
-func listData(data [][]string) []model.Car {
-	// convert csv lines to array of structs
+func WhatType(id int) (isType string) {
+	if id%2 == 0 {
+		return "even"
+	} else {
+		return "odd"
+	}
+}
+
+func listData(data [][]string, reqType string) []model.Car {
 	var carList []model.Car
 	for i, line := range data {
-		if i > 0 { // omit header line
+		id, _ := strconv.Atoi(line[0])
+		if i > 0 && (WhatType(id) == reqType || reqType == "") {
 			var rec model.Car
 			for j, field := range line {
 				if j == 0 {
-					var err error
-					rec.Id, err = strconv.Atoi(field)
-					if err != nil {
-						continue
-					}
+					rec.Id, _ = strconv.Atoi(field)
 				} else if j == 1 {
-					var err error
-					rec.Year, err = strconv.Atoi(field)
-					if err != nil {
-						continue
-					}
+					rec.Year, _ = strconv.Atoi(field)
 				} else if j == 2 {
 					rec.Brand = field
 				} else if j == 3 {
@@ -56,7 +56,7 @@ func listData(data [][]string) []model.Car {
 	return carList
 }
 
-func (*repo) GetAll() ([]model.Car, error) {
+func (*repo) GetAll(reqType string) ([]model.Car, error) {
 	f, err := os.Open("data/cars.csv")
 	if err != nil {
 		log.Fatal(err)
@@ -74,7 +74,7 @@ func (*repo) GetAll() ([]model.Car, error) {
 	wg.Add(1)
 
 	go func([]model.Car) {
-		cars = listData(data)
+		cars = listData(data, reqType)
 		wg.Done()
 	}(cars)
 
