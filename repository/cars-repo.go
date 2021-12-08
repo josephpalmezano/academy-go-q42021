@@ -8,7 +8,10 @@ import (
 	"main/model"
 	"os"
 	"strconv"
+	"sync"
 )
+
+var wg = sync.WaitGroup{}
 
 type CarRepo interface {
 	Save(car *model.Car) (*model.Car, error)
@@ -66,8 +69,16 @@ func (*repo) GetAll() ([]model.Car, error) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	var cars []model.Car
 
-	cars := listData(data)
+	wg.Add(1)
+
+	go func([]model.Car) {
+		cars = listData(data)
+		wg.Done()
+	}(cars)
+
+	wg.Wait()
 
 	jsonData, err := json.MarshalIndent(cars, "", "  ")
 	if err != nil {
